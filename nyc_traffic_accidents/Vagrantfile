@@ -12,19 +12,20 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Every Vagrant virtual environment requires a box to build off of.
   config.vm.box = "puppetlabs/ubuntu-14.04-64-puppet"
 
+  config.vm.provision :shell, path: "bootstrap.sh"
   config.vm.provision :puppet do |puppet|
     puppet.manifests_path = "puppet/manifests"
     puppet.module_path = "puppet/modules"
     # puppet.options = "--verbose --debug"
   end
-#  config.vm.provision :shell, :path => "bootstrap.sh"
   
   config.vm.network "forwarded_port", guest: 9200, host: 9200
-  config.vm.network "forwarded_port", guest: 5200, host: 5200
+  config.vm.network "forwarded_port", guest: 5601, host: 5601
   
   config.vm.provider "virtualbox" do |vb|
     # Use VBoxManage to customize the VM. For example to change memory:
     vb.customize ["modifyvm", :id, "--memory", "2048"]
+    # vb.cpus = 2
   end
 
   # Disable automatic box update checking. If you disable this, then

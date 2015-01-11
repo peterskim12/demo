@@ -48,63 +48,42 @@ class elasticsearch-demo_vagrant_env {
 	  shell => "/bin/bash",
 	}
 	
-	############################################################################
-	# INSTALL WEBSERVER
-	############################################################################
-
-	# Install nginx
-	class { 'nginx': }
-
-	nginx::resource::vhost { "kibana_vhost":
-	  listen_port => 5200,
-	  www_root => "/var/www/kibana-3.1.0/",
-	  index_files     => ['index.php', 'index.html', 'index.htm'],
-	}
-
-	nginx::resource::location { "kibana_root":
-	  vhost => "kibana_vhost",
-	  www_root => "/var/www/kibana-3.1.0/",
-	}
-
-	file { "/var/www":
-	  alias => "var_www_dir",
-	  ensure => directory,
-	}
 	
 	############################################################################
 	# INSTALL ELK STACK
 	############################################################################
 
 	# Get latest Kibana
-	exec { "/usr/bin/wget --timestamping https://download.elasticsearch.org/kibana/kibana/kibana-3.1.0.tar.gz":
+	exec { "/usr/bin/wget --timestamping https://download.elasticsearch.org/kibana/kibana/kibana-4.0.0-beta3.tar.gz":
 	  alias => "kibana_latest_wget",
 	  cwd => "/tmp",
 	}
 
-	file { "/var/www/kibana-3.1.0.tar.gz":
+	file { "/opt/kibana-4.0.0-beta3.tar.gz":
 	  ensure => present,
-	  source => "/tmp/kibana-3.1.0.tar.gz",
+	  source => "/tmp/kibana-4.0.0-beta3.tar.gz",
 	  alias => "kibana_dist_file",
-	  require => [File["var_www_dir"], Exec["kibana_latest_wget"]], 
+	  require => [Exec["kibana_latest_wget"]], 
 	}
 
 	# Install logstash
 	class { "logstash":
 	  manage_repo  => true,
-	  repo_version => "1.4",
+	  repo_version => "1.5",
 	  status => 'disabled'
 	}
 
 	exec {"kibana_unzip":
-	  command => "/bin/tar xzfv kibana-3.1.0.tar.gz",
-	  cwd => "/var/www",
+	  command => "/bin/tar xzfv kibana-4.0.0-beta3.tar.gz",
+	  cwd => "/opt",
 	  require => File["kibana_dist_file"],
 	}
 
 	# Install elasticsearch
 	class { "elasticsearch":
 	  manage_repo  => true,
-	  repo_version => "1.3",
+	  repo_version => "1.4",
+	  java_install => true,
 	  init_defaults => {
 	    "ES_HEAP_SIZE" => "1024m",
 	  },
